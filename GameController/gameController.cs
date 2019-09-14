@@ -40,7 +40,7 @@ public class gameController : MonoBehaviour
         }
     }
 
-    public void shoot(Vector3 position, float rotate)
+    public void shoot(Vector3 position, float rotate, float speed)
     {
         for(int i=0;i<bulletDictionary["AlifNormal"].Count;i++)
         {
@@ -48,6 +48,9 @@ public class gameController : MonoBehaviour
             {
                 bulletDictionary["AlifNormal"][i].SetActive(true);
                 bulletDictionary["AlifNormal"][i].transform.localPosition=position;
+                bulletDictionary["AlifNormal"][i].transform.Rotate(new Vector3(0,0,rotate));
+                SpeedClass spd = bulletDictionary["AlifNormal"][i].GetComponent<SpeedClass>();
+                spd.speed = speed;
                 return;
             }
         }

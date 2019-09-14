@@ -1,6 +1,7 @@
 ﻿using System;
+using UnityEngine;
 
-public class SpeedClass
+public class SpeedClass : MonoBehaviour
 {
     protected float acceleration, maxSpeed, minSpeed;
     public float speed;
@@ -49,5 +50,10 @@ public class SpeedClass
     {
         speed -= acceleration;
         clampSpeed();
+    }
+
+    void Update()
+    {
+        transform.localPosition+=new Vector3(transform.right.x*speed*Time.deltaTime, transform.right.y*speed*Time.deltaTime);
     }
 }

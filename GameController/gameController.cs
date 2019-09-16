@@ -29,7 +29,7 @@ public class GameController : MonoBehaviour
 
     public void generateEnemy(Vector2 location, float rotation)
     {
-        GameObject enemy = Instantiate(enemies, new Vector3(playfieldAnchorTransform.position.x+location.x, playfieldAnchorTransform.position.y + location.y, 0), Quaternion.Euler(0,0,rotation));
+        GameObject enemy = Instantiate(enemies, new Vector3(playfieldAnchorTransform.position.x+location.x, playfieldAnchorTransform.position.y + location.y, 0), Quaternion.Euler(0,0,rotation),playfieldAnchorTransform);
         EnemyMove em = enemy.GetComponent<EnemyMove>();
         em.speed=20f;
     }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class gameController : MonoBehaviour
+public class GameController : MonoBehaviour
 {
     public GameObject enemies;
 
@@ -17,7 +17,7 @@ public class gameController : MonoBehaviour
     public List<Pool> bulletPools;
     public Dictionary<string, List<GameObject>> bulletDictionary;
 
-    public static gameController sharedOverseer;
+    public static GameController sharedOverseer;
     
     //mending ga usah dijadiin satu class sendiri
     #region EnemyGenerationPattern
@@ -29,7 +29,9 @@ public class gameController : MonoBehaviour
 
     public void generateEnemy(Vector2 location, float rotation)
     {
-        Instantiate(enemies, new Vector3(playfieldAnchorTransform.position.x+location.x, playfieldAnchorTransform.position.y + location.y, 0), Quaternion.Euler(0,0,rotation));
+        GameObject enemy = Instantiate(enemies, new Vector3(playfieldAnchorTransform.position.x+location.x, playfieldAnchorTransform.position.y + location.y, 0), Quaternion.Euler(0,0,rotation));
+        EnemyMove em = enemy.GetComponent<EnemyMove>();
+        em.speed=20f;
     }
 
     #endregion

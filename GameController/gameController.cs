@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class gameController : MonoBehaviour
 {
+    public GameObject enemies;
+
     [System.Serializable]
     public class Pool{
         public string tag;
@@ -17,6 +19,8 @@ public class gameController : MonoBehaviour
 
     public static gameController sharedOverseer;
 
+    
+    
     void Awake()
     {
         sharedOverseer = this;

@@ -18,9 +18,22 @@ public class gameController : MonoBehaviour
     public Dictionary<string, List<GameObject>> bulletDictionary;
 
     public static gameController sharedOverseer;
+    
+    //mending ga usah dijadiin satu class sendiri
+    #region EnemyGenerationPattern
 
-    
-    
+    private Timer generateTimer;
+    //public Timer[] timerList;
+    public Vector2[] locationList;
+    public float[] rotationList, timerList;
+
+    public void generateEnemy(Vector2 location, float rotation)
+    {
+        Instantiate(enemies, new Vector3(playfieldAnchorTransform.position.x+location.x, playfieldAnchorTransform.position.y + location.y, 0), Quaternion.Euler(0,0,rotation));
+    }
+
+    #endregion
+
     void Awake()
     {
         sharedOverseer = this;
@@ -41,6 +54,22 @@ public class gameController : MonoBehaviour
                 objPool.Add(obj);
             }
             bulletDictionary.Add(pool.tag, objPool);
+        }
+
+        generateTimer = new Timer(timerList[0], true);
+    }
+
+    void Update()
+    {
+        int i=0;
+        if(i<locationList.Length)
+        {
+            if(generateTimer.timerCount())
+            {
+                generateEnemy(locationList[i], rotationList[i]);
+                generateTimer.changeDuration(timerList[i+1]);
+            }
+            i++;
         }
     }
 

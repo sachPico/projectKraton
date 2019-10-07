@@ -2,39 +2,53 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Timer : MonoBehaviour
+[System.Serializable]
+public class Timer
 {
-    private float timer_i, timer;
+    private float timer_i;
+    public float timer;
     public bool isOver, isResettable;
 
 
-    public Timer(float t, bool resettability)
+    public Timer(float t, bool setResettable)
     {
-        timer_i=1;
+        timer_i=0;
         timer = t;
-        isOver = false;
-        isResettable = resettability;
+        isResettable = setResettable;
+        isOver=false;
     }
     public void changeDuration(float duration)
     {
         timer = duration;
     }
+
+    public void resetTimer()
+    {
+        isOver=false;
+    }
+
     public bool timerCount()
     {
-        if(timer_i >= timer)
+        if(isOver==false)
         {
-            timer_i=0;
-            isOver=true;
-            if(isResettable)
+            if(timer_i >= timer)
             {
+                if(!isResettable)
+                {
+                    isOver=true;
+                }
                 timer_i=0;
+                return true;
             }
-            return true;
+            else
+            {
+                timer_i+=Time.deltaTime;
+                return false;
+            }
         }
         else
         {
-            timer_i+=Time.deltaTime;
-            return false;
+            return true;
         }
     }
 }

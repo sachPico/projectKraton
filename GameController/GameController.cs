@@ -5,40 +5,100 @@ using UnityEngine;
 public class GameController : MonoBehaviour
 {
     public GameObject enemies;
-
+    public Camera mainCam;
     [System.Serializable]
     public class Pool{
         public string tag;
         public GameObject prefab;
         public int size;
     }
-
+    [System.Serializable]
+    public class SpawnObject
+    {
+        public Timer timer;
+        public SpawnObjectProperty[] sop;
+        public void Generate()
+        {
+            for(int i=0; i<sop.Length; i++)
+            {
+                GameController.sharedOverseer.generateEnemy(sop[i].camPosition, sop[i].direction);
+            }
+        }
+    }
+    [System.Serializable]
+    public class SpawnObjectProperty{
+        public GameObject obj;
+        public Vector2 camPosition;
+        public float direction, speed;
+    }
     public Transform playfieldAnchorTransform;
     public List<Pool> bulletPools;
     public Dictionary<string, List<GameObject>> bulletDictionary;
-
     public static GameController sharedOverseer;
-    
+    public SpawnObject[] spawnObjects;
+    public Transform border_test;
     //mending ga usah dijadiin satu class sendiri
     #region EnemyGenerationPattern
 
+    private int i=0, j=0;
+    public Vector3[] border_cam, border;
+
     private Timer generateTimer;
     //public Timer[] timerList;
-    public Vector2[] locationList;
-    public float[] rotationList, timerList;
+    //public Vector2[] locationList;
+    //public float[] rotationList, timerList;
 
     public void generateEnemy(Vector2 location, float rotation)
     {
-        GameObject enemy = Instantiate(enemies, new Vector3(playfieldAnchorTransform.position.x+location.x, playfieldAnchorTransform.position.y + location.y, 0), Quaternion.Euler(0,0,rotation),playfieldAnchorTransform);
+        Vector3 toAnchor = mainCam.ViewportToWorldPoint(new Vector3(location.x,location.y,Mathf.Abs(mainCam.transform.localPosition.z)));
+        GameObject enemy = Instantiate(enemies, toAnchor, Quaternion.identity,playfieldAnchorTransform);
+        enemy.transform.localRotation = Quaternion.Euler(0,0,rotation);
         EnemyMove em = enemy.GetComponent<EnemyMove>();
-        em.speed=20f;
+        em.speed=10f;
+        //em.playfieldAnchor=playfieldAnchorTransform;
+    }
+
+    public void shoot(string tag, Vector3 position, float rotate, float speed, Color col)
+    {
+        for(int i=0;i<bulletDictionary[tag].Count;i++)
+        {
+            if(!bulletDictionary[tag][i].activeInHierarchy)
+            {
+                bulletDictionary[tag][i].SetActive(true);
+                bulletDictionary[tag][i].transform.localPosition=position;
+                bulletDictionary[tag][i].transform.localRotation = Quaternion.identity;
+                bulletDictionary[tag][i].transform.localRotation = Quaternion.Euler(0,0,rotate);
+                BulletMovement spd = bulletDictionary[tag][i].GetComponent<BulletMovement>();
+                spd.initialZ = rotate;
+                //SpriteRenderer sr = bulletDictionary[tag][i].GetComponent<SpriteRenderer>();
+                //sr.color = col;
+                spd.speed = speed;
+                return;
+            }
+        }
+        GameObject obj = Instantiate(bulletDictionary[tag][0]);
+        //SpriteRenderer newsr = obj.GetComponent<SpriteRenderer>();
+        //newsr.color = col;
+        obj.transform.SetParent(playfieldAnchorTransform);
+        obj.transform.localPosition=position;
+        obj.transform.localRotation=Quaternion.identity;
+        obj.transform.localRotation=Quaternion.Euler(0,0,rotate);
+        BulletMovement newspd = obj.GetComponent<BulletMovement>();
+        newspd.speed=speed;
+        newspd.initialZ=rotate;
+        obj.SetActive(true);
+        bulletDictionary[tag].Add(obj);
+
+        return;
+        //pooledObjects.Add(obj);
     }
 
     #endregion
 
+
     void Awake()
     {
-        sharedOverseer = this;
+        sharedOverseer = this; 
     }
 
     void Start()
@@ -57,37 +117,39 @@ public class GameController : MonoBehaviour
             }
             bulletDictionary.Add(pool.tag, objPool);
         }
-
-        generateTimer = new Timer(timerList[0], true);
+        //Debug.Log(spawnObjects.Length);
+        //generateTimer = new Timer(timerList[0]);
+        //Horizontal side border
+        /*border_cam[0] = new Vector3(0.1f, 0.1f, transform.localPosition.z);
+        border_cam[1] = new Vector3(0.9f, 0.1f, transform.localPosition.z);
+        //Vertical side border
+        border_cam[2] = new Vector3(0.1f, 0.9f, transform.localPosition.z);
+        border_cam[3] = new Vector3(0.9f, 0.9f, transform.localPosition.z);
+        border[0]=new Vector3();
+        border[1]=new Vector3();
+        border[2]=new Vector3();
+        border[3]=new Vector3();*/
     }
 
     void Update()
     {
-        int i=0;
-        if(i<locationList.Length)
+        if(i<spawnObjects.Length)
         {
-            if(generateTimer.timerCount())
+            if(spawnObjects[i].timer.timerCount())
             {
-                generateEnemy(locationList[i], rotationList[i]);
-                generateTimer.changeDuration(timerList[i+1]);
+                spawnObjects[i].Generate();
+                i++;
             }
-            i++;
         }
+        for(j=0;j<4;j++)
+        {
+            border_cam[j].z=Mathf.Abs(mainCam.transform.localPosition.z);
+            //Debug.Log(j+", "+border_cam[j].z);
+            border[j]=mainCam.ViewportToWorldPoint(border_cam[j]);
+            //Debug.Log("HUBLA");
+        }
+        border_test.position=border[0];
     }
 
-    public void shoot(Vector3 position, float rotate, float speed)
-    {
-        for(int i=0;i<bulletDictionary["AlifNormal"].Count;i++)
-        {
-            if(!bulletDictionary["AlifNormal"][i].activeInHierarchy)
-            {
-                bulletDictionary["AlifNormal"][i].SetActive(true);
-                bulletDictionary["AlifNormal"][i].transform.localPosition=position;
-                bulletDictionary["AlifNormal"][i].transform.Rotate(new Vector3(0,0,rotate));
-                SpeedClass spd = bulletDictionary["AlifNormal"][i].GetComponent<SpeedClass>();
-                spd.speed = speed;
-                return;
-            }
-        }
-    }
+    
 }

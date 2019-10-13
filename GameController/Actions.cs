@@ -31,8 +31,6 @@ public class Actions
             {
                 GameController.sharedOverseer.shoot(tag,position,direction+(i*360/intensity)+otherFactor,speed, Color.red);
             }
-            //Debug.Break();
-            //Debug.Log("Capacity of object pool with tag "+tag+" is now equal to: "+GameController.sharedOverseer.bulletDictionary["Kerikil1"].Count);
         }
     }
 

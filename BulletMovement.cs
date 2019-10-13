@@ -5,7 +5,7 @@ public class BulletMovement : MonoBehaviour
 {
     protected float acceleration, maxSpeed, minSpeed;
     public float speed, modifierTargetRotation, interpolationSpeed, initialZ;
-    public bool isExectueModifier;
+    public bool isExecuteModifier;
     Modifier modifier;
     Timer timer;
 
@@ -69,7 +69,7 @@ public class BulletMovement : MonoBehaviour
             timer.resetTimer();
             gameObject.SetActive(false);
         }
-        if(timer.timerCount()&&isExectueModifier)
+        if(timer.timerCount()&&isExecuteModifier)
         {
             modifier._changeRotationClamped.Modify(this.transform, initialZ+modifierTargetRotation, interpolationSpeed);
         }

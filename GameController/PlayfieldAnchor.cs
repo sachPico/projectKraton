@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlayfieldAnchor : MonoBehaviour
 {
     public AnimationCurve rotationGraphX, rotationGraphY, rotationGraphZ;
-    public float speed;
+    public float speed, recRotX, recRotY, recRotZ;
     
     // Start is called before the first frame update
     void Start()
@@ -16,10 +16,12 @@ public class PlayfieldAnchor : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //transform.eulerAngles = new Vector3(rotationGraphX.Evaluate(Time.deltaTime), rotationGraphY.Evaluate(Time.deltaTime), rotationGraphZ.Evaluate(Time.deltaTime));
-        transform.Rotate(rotationGraphX.Evaluate(Time.deltaTime), rotationGraphY.Evaluate(Time.deltaTime), rotationGraphZ.Evaluate(Time.deltaTime));
-
-        //transform.rotation = Quaternion.Euler(rotationGraphX.Evaluate(Time.deltaTime), 0,0);
-        //transform.position += transform.up * speed * Time.deltaTime;
+        transform.Rotate(rotationGraphX.Evaluate(Time.time)-recRotX,rotationGraphY.Evaluate(Time.time)-recRotY,rotationGraphZ.Evaluate(Time.time)-recRotZ,Space.Self);
+        recRotX=rotationGraphX.Evaluate(Time.time);
+        recRotY=rotationGraphY.Evaluate(Time.time);
+        recRotZ=rotationGraphZ.Evaluate(Time.time);
+        //Quaternion.Euler(rotationGraphX.Evaluate(Time.time),rotationGraphY.Evaluate(Time.time),rotationGraphZ.Evaluate(Time.time));
+        //transform.rotation = Quaternion.Euler(rotationGraphX.Evaluate(Time.time),rotationGraphY.Evaluate(Time.time),rotationGraphZ.Evaluate(Time.time));
+        transform.position += transform.up * speed * Time.deltaTime;
     }
 }

@@ -5,29 +5,61 @@ using UnityEngine;
 public class PlayerControl : MonoBehaviour
 {
     public float moveSpeed;
+    int powerStatus;
+    public int powerCounter;
     public float dist;
     private Vector3 limit;
+    public Vector3 translate;
+    bool isShoot;
     void Start()
     {
-        
+        isShoot=false;
+        translate = new Vector3(0,0,0);
+    }
+
+    void PowerUp()
+    {
+        powerStatus++;
+        powerCounter=0;
+    }
+
+    void PowerDown()
+    {
+        powerStatus--;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(Input.GetButtonDown("Fire1"))
+        if(Input.GetButton("Fire1"))
         {
-            GameController.sharedOverseer.shoot("AlifNormal",transform.localPosition+(Vector3.right*dist), 45f,20f, Color.white);
-            GameController.sharedOverseer.shoot("AlifNormal",transform.localPosition+(Vector3.right*dist*-1), 135f,20f, Color.white);
+            if(isShoot==false)
+            {
+                isShoot=true;
+            }
+            else
+            {
+                GameController.sharedOverseer.shoot("AlifNormal",transform.localPosition+(Vector3.right*dist), 90f,100f, Color.white);
+                GameController.sharedOverseer.shoot("AlifNormal",transform.localPosition+(Vector3.right*dist*-1), 90f,100f, Color.white);
+                isShoot=false;
+            }
         }
-        transform.localPosition+= (Input.GetAxisRaw("Horizontal")*moveSpeed*Time.deltaTime*transform.right)+ (Input.GetAxisRaw("Vertical")*moveSpeed*Time.deltaTime*transform.up);
+        if(powerCounter>=100)
+        {
+            PowerUp();
+        }
+        translate.x=Input.GetAxisRaw("Horizontal")*moveSpeed*Time.deltaTime;
+        translate.y=Input.GetAxisRaw("Vertical")*moveSpeed*Time.deltaTime;
+        transform.localPosition+= translate;
+        
     }
 
     void LateUpdate()
     {
-        transform.localPosition.Set(
-            Mathf.Clamp(transform.localPosition.x,GameController.sharedOverseer.border[0].x,GameController.sharedOverseer.border[1].x),
-            Mathf.Clamp(transform.localPosition.y,GameController.sharedOverseer.border[2].y,GameController.sharedOverseer.border[3].y),
-            0f);
+        limit = transform.localPosition;
+        limit.x = Mathf.Clamp(limit.x,GameController.sharedOverseer.border_test[0].localPosition.x, GameController.sharedOverseer.border_test[1].localPosition.x);
+        limit.y = Mathf.Clamp(limit.y,GameController.sharedOverseer.border_test[2].localPosition.y, GameController.sharedOverseer.border_test[3].localPosition.y);
+
+        transform.localPosition = limit;
     }
 }

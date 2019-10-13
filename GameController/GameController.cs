@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class GameController : MonoBehaviour
 {
-    public GameObject enemies;
-    public Camera mainCam;
     [System.Serializable]
     public class Pool{
         public string tag;
@@ -21,7 +19,7 @@ public class GameController : MonoBehaviour
         {
             for(int i=0; i<sop.Length; i++)
             {
-                GameController.sharedOverseer.generateEnemy(sop[i].camPosition, sop[i].direction);
+                GameController.sharedOverseer.generateEnemy(sop[i]);
             }
         }
     }
@@ -29,33 +27,69 @@ public class GameController : MonoBehaviour
     public class SpawnObjectProperty{
         public GameObject obj;
         public Vector2 camPosition;
-        public float direction, speed;
+        public float direction, speed, spawnPowerUpNumber, bulletSpeed;
+        public float difficultyIntensity, difficultySpeedIntensity, bulletDensity, health;
+        public Act act;
     }
-    public Transform playfieldAnchorTransform;
-    public List<Pool> bulletPools;
+    public enum Act{ShootAim, Circular};
+    public enum Difficulty{Easy=1, Normal, Hard};
+    public Difficulty difficulty;
+
     public Dictionary<string, List<GameObject>> bulletDictionary;
-    public static GameController sharedOverseer;
+    public List<Pool> bulletPools;
     public SpawnObject[] spawnObjects;
-    public Transform border_test;
+    public Vector3[] border_cam, border;
+
+    public GameObject enemies, player;
+    public Camera mainCam;
+    public Transform playfieldAnchorTransform;
+    public Transform[] border_test;
+    public static GameController sharedOverseer;
+
     //mending ga usah dijadiin satu class sendiri
     #region EnemyGenerationPattern
 
     private int i=0, j=0;
-    public Vector3[] border_cam, border;
 
     private Timer generateTimer;
-    //public Timer[] timerList;
-    //public Vector2[] locationList;
-    //public float[] rotationList, timerList;
 
-    public void generateEnemy(Vector2 location, float rotation)
+    public void generateEnemy(SpawnObjectProperty property)
     {
-        Vector3 toAnchor = mainCam.ViewportToWorldPoint(new Vector3(location.x,location.y,Mathf.Abs(mainCam.transform.localPosition.z)));
-        GameObject enemy = Instantiate(enemies, toAnchor, Quaternion.identity,playfieldAnchorTransform);
-        enemy.transform.localRotation = Quaternion.Euler(0,0,rotation);
+        Vector3 toAnchor = mainCam.ViewportToWorldPoint(new Vector3(property.camPosition.x,property.camPosition.y,Mathf.Abs(mainCam.transform.localPosition.z)));
+        GameObject enemy = Instantiate(property.obj, toAnchor, Quaternion.identity,playfieldAnchorTransform);
+        enemy.transform.localRotation = Quaternion.Euler(0,0,property.direction);
         EnemyMove em = enemy.GetComponent<EnemyMove>();
-        em.speed=10f;
-        //em.playfieldAnchor=playfieldAnchorTransform;
+        em.speed=property.speed;
+        em.difficultyDensityIntensity = property.difficultyIntensity;
+        em.spawnPowerUp=property.spawnPowerUpNumber;
+        em.bulletDensity=property.bulletDensity;
+        em.bulletSpeed=property.bulletSpeed;
+        em.difficultySpeedIntensity=property.difficultySpeedIntensity;
+        em.health=property.health;
+        switch(property.act)
+        {
+            case Act.Circular: em.pattern = EnemyMove.Pattern.Circular; break;
+            case Act.ShootAim: em.pattern = EnemyMove.Pattern.ShootAim; break;
+        }
+    }
+
+    public void spawnPowerUp(Vector3 spawnPosition)
+    {
+        for(int i=0;i<bulletDictionary["PowerUp"].Count;i++)
+        {
+            if(!bulletDictionary["PowerUp"][i].activeInHierarchy)
+            {
+                bulletDictionary["PowerUp"][i].SetActive(true);
+                bulletDictionary["PowerUp"][i].transform.localPosition=spawnPosition;
+                return;
+            }
+        }
+        GameObject obj = Instantiate(bulletDictionary["PowerUp"][0]);
+        obj.transform.SetParent(playfieldAnchorTransform);
+        obj.transform.localPosition=spawnPosition;
+        obj.SetActive(true);
+        bulletDictionary["PowerUp"].Add(obj);
+        return;
     }
 
     public void shoot(string tag, Vector3 position, float rotate, float speed, Color col)
@@ -88,9 +122,7 @@ public class GameController : MonoBehaviour
         newspd.initialZ=rotate;
         obj.SetActive(true);
         bulletDictionary[tag].Add(obj);
-
         return;
-        //pooledObjects.Add(obj);
     }
 
     #endregion
@@ -99,6 +131,7 @@ public class GameController : MonoBehaviour
     void Awake()
     {
         sharedOverseer = this; 
+        Application.targetFrameRate=60;
     }
 
     void Start()
@@ -117,18 +150,21 @@ public class GameController : MonoBehaviour
             }
             bulletDictionary.Add(pool.tag, objPool);
         }
-        //Debug.Log(spawnObjects.Length);
-        //generateTimer = new Timer(timerList[0]);
         //Horizontal side border
-        /*border_cam[0] = new Vector3(0.1f, 0.1f, transform.localPosition.z);
-        border_cam[1] = new Vector3(0.9f, 0.1f, transform.localPosition.z);
+        border_cam[0] = new Vector3(0.1f, 0.5f, transform.localPosition.z);
+        border_cam[1] = new Vector3(0.9f, 0.5f, transform.localPosition.z);
         //Vertical side border
-        border_cam[2] = new Vector3(0.1f, 0.9f, transform.localPosition.z);
-        border_cam[3] = new Vector3(0.9f, 0.9f, transform.localPosition.z);
+        border_cam[2] = new Vector3(0.5f, 0.1f, transform.localPosition.z);
+        border_cam[3] = new Vector3(0.5f, 0.9f, transform.localPosition.z);
         border[0]=new Vector3();
         border[1]=new Vector3();
         border[2]=new Vector3();
-        border[3]=new Vector3();*/
+        border[3]=new Vector3();
+        for(int i=0; i<4; i++)
+        {
+            border[j]=new Vector3();
+
+        }
     }
 
     void Update()
@@ -144,12 +180,14 @@ public class GameController : MonoBehaviour
         for(j=0;j<4;j++)
         {
             border_cam[j].z=Mathf.Abs(mainCam.transform.localPosition.z);
-            //Debug.Log(j+", "+border_cam[j].z);
             border[j]=mainCam.ViewportToWorldPoint(border_cam[j]);
+            border_test[j].position=border[j];
             //Debug.Log("HUBLA");
         }
-        border_test.position=border[0];
-    }
 
+        
+        Debug.Log(Time.time);
+    }
+    
     
 }

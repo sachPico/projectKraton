@@ -6,30 +6,42 @@ public class EnemyMove : MonoBehaviour
 {
     // Start is called before the first frame update
     //public Transform playfieldAnchor;
-    public float speed, health, spawnPowerUp, bulletSpeed;
-    public float difficultyDensityIntensity, difficultySpeedIntensity, bulletDensity;
+    public float speed, health, spawnPowerUp;
+    //public float difficultyDensityIntensity, difficultySpeedIntensity, bulletDensity;
+
+    /*[System.Serializable]
+    public struct Parameters
+    {
+        public float range, targetDirection, bulletDirection, bulletDensity, bulletSpeed, difficultyDensity, difficultySpeed;
+        public bool isAimingPlayer;
+    }*/
+
+    public List<BulletGenerator> bg_list=new List<BulletGenerator>();
     Vector3 spawnLocalPosition;
-    Timer fireRate;
     //Actions actions;
     //public static List<Actions.Action> actionList;
-    public enum Pattern{ShootAim, Circular};
-    public Pattern pattern;
-    public Actions acts;
+    //public Parameters param;
 
 
     void Start()
     {
-        fireRate = new Timer(1f,true);
         spawnLocalPosition=new Vector3(0,0,0);
         //actions = new Actions();
-        acts = new Actions();
+        //bg_list = new List<BulletGenerator>();
     }
 
     // Update is called once per frame
     void Update()
     {
         transform.position+=transform.right*speed*Time.deltaTime;
-        if(fireRate.timerCount())
+        //bg_list[0].GeneratorShoot();
+        for(int i=0; i<bg_list.Count; i++)
+        {
+            //Debug.Log("Generator Shoot "+i+" "+bg_list[i].location.x+" "+bg_list[i].location.y);
+            bg_list[i].GeneratorShoot();
+            //Debug.Log("Generator Shoot "+i+" "+bg_list[i].location.x+" "+bg_list[i].location.y+" "+bg_list[i].location.z);
+        }
+        /*if(fireRate.timerCount())
         {
             switch(pattern)
             {
@@ -37,22 +49,25 @@ public class EnemyMove : MonoBehaviour
                 (
                     this.gameObject,
                     "Kerikil1",
-                    transform.localPosition,
-                    bulletSpeed*difficultySpeedIntensity*(int)GameController.sharedOverseer.difficulty
+                    param
                 );
                 break;
                 case Pattern.Circular: acts._shootCircular.Execute
                 (
                     this.gameObject,
                     "Kerikil1",
-                    transform.localPosition,
-                    bulletSpeed*difficultySpeedIntensity*(int)GameController.sharedOverseer.difficulty,
-                    (int)(bulletDensity*difficultyDensityIntensity*(int)GameController.sharedOverseer.difficulty),
-                    0
+                    param
+                );
+                break;
+                case Pattern.ShootFan: acts._shootFan.Execute
+                (
+                    this.gameObject,
+                    "Kerikil1",
+                    param
                 );
                 break;
             }
-        }
+        }*/
         if(GameController.sharedOverseer.mainCam.WorldToViewportPoint(transform.position).x>1.1||GameController.sharedOverseer.mainCam.WorldToViewportPoint(transform.position).x<-0.1f||GameController.sharedOverseer.mainCam.WorldToViewportPoint(transform.position).y>1.1||GameController.sharedOverseer.mainCam.WorldToViewportPoint(transform.position).y<-0.1)
         {
             gameObject.SetActive(false);

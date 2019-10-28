@@ -4,71 +4,34 @@ using UnityEngine;
 
 public class EnemyMove : MonoBehaviour
 {
-    // Start is called before the first frame update
-    //public Transform playfieldAnchor;
     public float speed, health, spawnPowerUp;
-    //public float difficultyDensityIntensity, difficultySpeedIntensity, bulletDensity;
-
-    /*[System.Serializable]
-    public struct Parameters
-    {
-        public float range, targetDirection, bulletDirection, bulletDensity, bulletSpeed, difficultyDensity, difficultySpeed;
-        public bool isAimingPlayer;
-    }*/
-
     public List<BulletGenerator> bg_list=new List<BulletGenerator>();
-    Vector3 spawnLocalPosition;
-    //Actions actions;
-    //public static List<Actions.Action> actionList;
-    //public Parameters param;
+    Vector3 spawnLocalPosition, checkVisibility;
 
 
     void Start()
     {
         spawnLocalPosition=new Vector3(0,0,0);
-        //actions = new Actions();
-        //bg_list = new List<BulletGenerator>();
     }
 
     // Update is called once per frame
     void Update()
     {
+        checkVisibility = GameController.sharedOverseer.mainCam.WorldToViewportPoint(transform.position);
         transform.position+=transform.right*speed*Time.deltaTime;
-        //bg_list[0].GeneratorShoot();
         for(int i=0; i<bg_list.Count; i++)
         {
-            //Debug.Log("Generator Shoot "+i+" "+bg_list[i].location.x+" "+bg_list[i].location.y);
-            bg_list[i].GeneratorShoot();
-            //Debug.Log("Generator Shoot "+i+" "+bg_list[i].location.x+" "+bg_list[i].location.y+" "+bg_list[i].location.z);
-        }
-        /*if(fireRate.timerCount())
-        {
-            switch(pattern)
+            if(checkVisibility.x>1.1||checkVisibility.x<-0.1||checkVisibility.y>1.1||checkVisibility.y<-0.1)
             {
-                case Pattern.ShootAim: acts._shootAim.Execute
-                (
-                    this.gameObject,
-                    "Kerikil1",
-                    param
-                );
-                break;
-                case Pattern.Circular: acts._shootCircular.Execute
-                (
-                    this.gameObject,
-                    "Kerikil1",
-                    param
-                );
-                break;
-                case Pattern.ShootFan: acts._shootFan.Execute
-                (
-                    this.gameObject,
-                    "Kerikil1",
-                    param
-                );
-                break;
+                bg_list[i].isShoot=false;
             }
-        }*/
-        if(GameController.sharedOverseer.mainCam.WorldToViewportPoint(transform.position).x>1.1||GameController.sharedOverseer.mainCam.WorldToViewportPoint(transform.position).x<-0.1f||GameController.sharedOverseer.mainCam.WorldToViewportPoint(transform.position).y>1.1||GameController.sharedOverseer.mainCam.WorldToViewportPoint(transform.position).y<-0.1)
+            else
+            {
+                bg_list[i].isShoot=true;
+            }
+            bg_list[i].GeneratorShoot();
+        }
+        if(transform.localPosition.x>-GameController.fieldBorder||transform.localPosition.x<GameController.fieldBorder||GameController.sharedOverseer.mainCam.WorldToViewportPoint(transform.position).y>1.1||GameController.sharedOverseer.mainCam.WorldToViewportPoint(transform.position).y<-0.1)
         {
             gameObject.SetActive(false);
         }

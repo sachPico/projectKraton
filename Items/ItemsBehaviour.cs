@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class ItemsBehaviour : MonoBehaviour
 {
-    PlayerControl pc;
     Vector3 translate;
     public GameObject player;
     float vspeed = 10f;
@@ -12,7 +11,6 @@ public class ItemsBehaviour : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        pc = GameController.sharedOverseer.player.GetComponent<PlayerControl>();
         player = GameController.sharedOverseer.player;
     }
 
@@ -38,7 +36,7 @@ public class ItemsBehaviour : MonoBehaviour
 
     void CheckDistance()
     {
-        if(Vector3.Distance(transform.localPosition, player.transform.localPosition)<10)
+        if(Vector3.Distance(transform.localPosition, player.transform.localPosition)<5)
         {
             isGrazed=true;
         }
@@ -48,8 +46,9 @@ public class ItemsBehaviour : MonoBehaviour
     {
         if(other.tag=="Player")
         {
-            pc.powerCounter++;
             isGrazed=false;
+            vspeed=10f;
+            translate=Vector3.zero;
             this.gameObject.SetActive(false);
         }
     }

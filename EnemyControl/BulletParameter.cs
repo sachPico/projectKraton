@@ -5,8 +5,8 @@ using UnityEngine;
 [System.Serializable]
 public class BulletParameter
 {
-    public float range, targetDirection, bulletDirection, bulletDensity, bulletSpeed, difficultyDensity, difficultySpeed;
-    public bool isAimingPlayer;
+    public float range, targetDirection, bulletDirection, bulletDensity, bulletSpeed, difficultyDensity, difficultySpeed, angleSpeedModifier;
+    public bool isAimingPlayer,isModifyRotation;
     public string bulletLabel;
 
 }

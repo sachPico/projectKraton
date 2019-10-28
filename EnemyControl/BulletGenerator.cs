@@ -6,11 +6,11 @@ using UnityEngine;
 public class BulletGenerator
 {
     public Transform parent;
-    public float direction, radius;
     public Vector3 location=new Vector3();
     public Vector3 firstLoc=new Vector3();
     public List<Timer> fireTime=new List<Timer>();
     public List<BulletPattern> pattern=new List<BulletPattern>();
+    public bool isShoot = false;
 
     void Start()
     {
@@ -20,19 +20,18 @@ public class BulletGenerator
     {
         for(int i=0; i<fireTime.Count; i++)
         {
-            if(fireTime[i].timerCount())
-            {
-            
-            for(int j=0; j<pattern.Count;j++)
+            if(isShoot)
+            { 
+                if(fireTime[i].timerCount())
                 {
-                   
-                    for(int k=0; k<pattern[j].parameter.Count; k++)
+                for(int j=0; j<pattern.Count;j++)
                     {
-                        Debug.Log("Shoot "+location.x+" "+location.y);
-                        pattern[j].act[k].Execute(location, pattern[j].parameter[k]);
+                        for(int k=0; k<pattern[j].parameter.Count; k++)
+                        {
+                            pattern[j].act[k].Execute(location, pattern[j].parameter[k]);
+                        }
                     }
                 }
-                
             }
         }
         //Debug.Log(firstLoc.x+" "+firstLoc.y+" "+firstLoc.z);

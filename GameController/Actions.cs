@@ -6,9 +6,9 @@ public class Actions:MonoBehaviour
 {
     
     public class Action{
-        protected GameObject fired = new GameObject();
+        protected GameObject fired;
         protected BulletMovement bm;
-        public virtual void Execute(Vector2 spawnPosition, BulletParameter parameter){}
+        public virtual void Execute(Vector2 spawnPosition, BulletParameter parameter, Color color){}
     
     }
 
@@ -19,7 +19,7 @@ public class Actions:MonoBehaviour
 
     public class ShootLayered:Action
     {
-        public override void Execute(Vector2 spawnPos, BulletParameter param)
+        public override void Execute(Vector2 spawnPos, BulletParameter param, Color col)
         {
             Vector3 pLocation = GameObject.FindGameObjectWithTag("Player").transform.localPosition;
             int finalDensity = (int)(param.bulletDensity*param.difficultyDensity*(int)GameController.sharedOverseer.difficulty);
@@ -29,7 +29,7 @@ public class Actions:MonoBehaviour
                 float direction = Mathf.Rad2Deg*(Mathf.Atan2(pLocation.y-spawnPos.y,pLocation.x-spawnPos.x));
                 for(int i=0; i<finalDensity; i++)
                 {
-                    fired = GameController.sharedOverseer.shoot(param.bulletLabel,spawnPos,direction,5+(i*densitySpeed), Color.red);
+                    fired = GameController.sharedOverseer.shoot(param.bulletLabel,spawnPos,direction,5+(i*densitySpeed), col);
                     if(param.isModifyRotation)
                     {
                         bm = fired.GetComponent<BulletMovement>();
@@ -43,7 +43,7 @@ public class Actions:MonoBehaviour
             {
                 for(int i=0; i<finalDensity; i++)
                 {
-                    GameObject fired = GameController.sharedOverseer.shoot(param.bulletLabel,spawnPos,param.targetDirection,5+(densitySpeed*i), Color.red);
+                    GameObject fired = GameController.sharedOverseer.shoot(param.bulletLabel,spawnPos,param.targetDirection,5+(densitySpeed*i), col);
                     if(param.isModifyRotation)
                     {
                         bm = fired.GetComponent<BulletMovement>();
@@ -58,13 +58,13 @@ public class Actions:MonoBehaviour
 
     public class ShootDirectional:Action
     {
-        public override void Execute(Vector2 spawnPos, BulletParameter param)
+        public override void Execute(Vector2 spawnPos, BulletParameter param, Color col)
         {
             Vector3 pLocation = GameObject.FindGameObjectWithTag("Player").transform.localPosition;
             if(param.isAimingPlayer)
             {
                 float direction = Mathf.Rad2Deg*(Mathf.Atan2(pLocation.y-spawnPos.y,pLocation.x-spawnPos.x));
-                fired = GameController.sharedOverseer.shoot(param.bulletLabel,spawnPos,direction,param.bulletSpeed, Color.red);
+                fired = GameController.sharedOverseer.shoot(param.bulletLabel,spawnPos,direction,param.bulletSpeed, col);
                 if(param.isModifyRotation)
                     {
                         fired.AddComponent(typeof(BulletMoveModifier));
@@ -73,7 +73,7 @@ public class Actions:MonoBehaviour
             }
             else
             {
-                fired = GameController.sharedOverseer.shoot(param.bulletLabel,spawnPos,param.targetDirection,param.bulletSpeed, Color.red);
+                fired = GameController.sharedOverseer.shoot(param.bulletLabel,spawnPos,param.targetDirection,param.bulletSpeed, col);
                 if(param.isModifyRotation)
                     {
                         fired.AddComponent(typeof(BulletMoveModifier));
@@ -87,7 +87,7 @@ public class Actions:MonoBehaviour
     public class ShootCircular:Action
     {
 
-        public override void Execute(Vector2 spawnPos, BulletParameter param)
+        public override void Execute(Vector2 spawnPos, BulletParameter param, Color col)
         {
             Vector3 pLocation = GameObject.FindGameObjectWithTag("Player").transform.localPosition;
             float direction = Mathf.Rad2Deg*(Mathf.Atan2(pLocation.y-spawnPos.y,pLocation.x-spawnPos.x));
@@ -96,7 +96,7 @@ public class Actions:MonoBehaviour
             {
                 if(param.isAimingPlayer)
                 {
-                    fired = GameController.sharedOverseer.shoot(param.bulletLabel,spawnPos,direction+(i*360/finalDensity),param.bulletSpeed, Color.red);
+                    fired = GameController.sharedOverseer.shoot(param.bulletLabel,spawnPos,direction+(i*360/finalDensity),param.bulletSpeed, col);
                     if(param.isModifyRotation)
                     {
                         fired.AddComponent(typeof(BulletMoveModifier));
@@ -105,7 +105,7 @@ public class Actions:MonoBehaviour
                 }
                 else
                 {
-                    fired = GameController.sharedOverseer.shoot(param.bulletLabel,spawnPos,param.targetDirection+(i*360/finalDensity),param.bulletSpeed, Color.red);
+                    fired = GameController.sharedOverseer.shoot(param.bulletLabel,spawnPos,param.targetDirection+(i*360/finalDensity),param.bulletSpeed, col);
                     if(param.isModifyRotation)
                     {
                         fired.AddComponent(typeof(BulletMoveModifier));
@@ -119,7 +119,7 @@ public class Actions:MonoBehaviour
 
     public class ShootFan:Action
     {
-        public override void Execute(Vector2 spawnPos, BulletParameter param)
+        public override void Execute(Vector2 spawnPos, BulletParameter param, Color col)
         {
             Vector3 pLocation = GameObject.FindGameObjectWithTag("Player").transform.localPosition;
             int finalDensity = (int)(param.bulletDensity*param.difficultyDensity*(int)GameController.sharedOverseer.difficulty);
@@ -138,7 +138,7 @@ public class Actions:MonoBehaviour
             }
             for(int i=0; i<finalDensity; i++)
             {
-                GameController.sharedOverseer.shoot(param.bulletLabel,spawnPos,lowerDirection+(i*steps),param.bulletSpeed, Color.red);
+                GameController.sharedOverseer.shoot(param.bulletLabel,spawnPos,lowerDirection+(i*steps),param.bulletSpeed, col);
             }
         }
     }

@@ -6,7 +6,8 @@ public class EnemyMove : MonoBehaviour
 {
     public float speed, health, spawnPowerUp;
     public List<BulletGenerator> bg_list=new List<BulletGenerator>();
-    Vector3 spawnLocalPosition, checkVisibility;
+    public List<Timer> generatorTimer = new List<Timer>();
+    Vector3 spawnLocalPosition;
 
 
     void Start()
@@ -17,21 +18,31 @@ public class EnemyMove : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        checkVisibility = GameController.sharedOverseer.mainCam.WorldToViewportPoint(transform.position);
         transform.position+=transform.right*speed*Time.deltaTime;
-        for(int i=0; i<bg_list.Count; i++)
+        
+        for(int i=0; i<generatorTimer.Count; i++)
         {
-            if(checkVisibility.x>1.1||checkVisibility.x<-0.1||checkVisibility.y>1.1||checkVisibility.y<-0.1)
+            /*if(checkVisibility.x>1.1||checkVisibility.x<-0.1||checkVisibility.y>1.1||checkVisibility.y<-0.1)
             {
                 bg_list[i].isShoot=false;
             }
             else
             {
                 bg_list[i].isShoot=true;
+            }*/
+            if(generatorTimer[0].timerCount())
+            {
+                if(i!=0&&generatorTimer[i-1].isOver)
+                {
+                    generatorTimer[i].timerCount();
+                }
             }
-            bg_list[i].GeneratorShoot();
+            else
+            {
+                break;
+            }
         }
-        if(transform.localPosition.x>-GameController.fieldBorder||transform.localPosition.x<GameController.fieldBorder||GameController.sharedOverseer.mainCam.WorldToViewportPoint(transform.position).y>1.1||GameController.sharedOverseer.mainCam.WorldToViewportPoint(transform.position).y<-0.1)
+        if(transform.localPosition.x>-GameController.fieldBorder||transform.localPosition.x<GameController.fieldBorder||GameController.sharedOverseer.mainCam.WorldToViewportPoint(transform.position).y>1.3||GameController.sharedOverseer.mainCam.WorldToViewportPoint(transform.position).y<-0.1)
         {
             gameObject.SetActive(false);
         }

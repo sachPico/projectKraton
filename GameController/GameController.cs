@@ -28,31 +28,19 @@ public class GameController : MonoBehaviour
     public class SpawnObjectProperty{
         public GameObject obj;
         public Vector2 camPosition;
-        public BulletGeneratorProperty[] bulletGenerator;
+        public List<BulletGeneratorProperty> bulletGenerator;
+        public List<Timer> executeTimer;
         public float direction, speed, spawnPowerUpNumber, health;
     }
 
     [System.Serializable]
     public class BulletGeneratorProperty{
         public float direction, radius;
-        public List<Timer> fireTime;
-        public BulletPatternProperty[] pattern;
-    }
-
-    [System.Serializable]
-    public class BulletPatternProperty
-    {
-        public BulletParameterProperty[] parameter;
+        public int timerIndex;
+        public BulletParameter parameter;
         public enum PatternAction {ShootAim, ShootFan, ShootLayered, Circular};
-        public PatternAction[] actions;
-    }
-
-    [System.Serializable]
-    public class BulletParameterProperty
-    {
-        public float range, targetDirection, bulletDirection, bulletDensity, bulletSpeed, difficultyDensity, difficultySpeed, angleSpeedModifier;
-        public bool isAimingPlayer, isModifyRotation;
-        public string bulletLabel;
+        public PatternAction actions;
+        public Color bulletColor;
     }
 
     public enum Difficulty{Easy=1, Normal, Hard};
@@ -62,10 +50,9 @@ public class GameController : MonoBehaviour
     public Dictionary<string, List<GameObject>> bulletDictionary;
     public List<Pool> bulletPools;
     public SpawnObject[] spawnObjects;
-    BulletGenerator bake_bulletGenerator = new BulletGenerator();
-    BulletPattern bake_bulletPattern = new BulletPattern();
-    BulletParameter bake_bulletParameter = new BulletParameter();
+    
     Vector3 bakePos=new Vector3();
+    GameObject bakeGenerator;
     public Vector3[] border_cam, border;
     public static double fieldBorder;
 
@@ -93,48 +80,38 @@ public class GameController : MonoBehaviour
         em.health                   = property.health;
         em.spawnPowerUp             = property.spawnPowerUpNumber;
         em.speed                    = property.speed;
-        for(int i=0; i<property.bulletGenerator.Length;i++)
+        em.generatorTimer           = property.executeTimer;
+        for(int i=0; i<property.bulletGenerator.Count;i++)
         {
-            bakePos=new Vector3();
-            bake_bulletGenerator=new BulletGenerator();
-            for(int j=0; j<property.bulletGenerator[i].pattern.Length;j++)
-            {
-                bake_bulletPattern=new BulletPattern();
-                for(int k=0; k<property.bulletGenerator[i].pattern[j].parameter.Length;k++)
-                {
-                    bake_bulletParameter=new BulletParameter();
-                    bake_bulletParameter.range = property.bulletGenerator[i].pattern[j].parameter[k].range;
-                    bake_bulletParameter.bulletDensity = property.bulletGenerator[i].pattern[j].parameter[k].bulletDensity;
-                    bake_bulletParameter.bulletDirection = property.bulletGenerator[i].pattern[j].parameter[k].bulletDirection;
-                    bake_bulletParameter.bulletSpeed = property.bulletGenerator[i].pattern[j].parameter[k].bulletSpeed;
-                    bake_bulletParameter.bulletLabel = property.bulletGenerator[i].pattern[j].parameter[k].bulletLabel;
-                    bake_bulletParameter.difficultyDensity = property.bulletGenerator[i].pattern[j].parameter[k].difficultyDensity;
-                    bake_bulletParameter.difficultySpeed = property.bulletGenerator[i].pattern[j].parameter[k].difficultySpeed;
-                    bake_bulletParameter.targetDirection = property.bulletGenerator[i].pattern[j].parameter[k].targetDirection;
-                    bake_bulletParameter.isAimingPlayer = property.bulletGenerator[i].pattern[j].parameter[k].isAimingPlayer;
-                    bake_bulletParameter.isModifyRotation = property.bulletGenerator[i].pattern[j].parameter[k].isModifyRotation;
-                    bake_bulletParameter.angleSpeedModifier = property.bulletGenerator[i].pattern[j].parameter[k].angleSpeedModifier;
-                    //em.bg_list[i].pattern[j].parameter.Add(bake_bulletParameter);
-                    //Debug.Log(em.bg_list[i].pattern[j].parameter[k].bulletLabel);
-                    switch(property.bulletGenerator[i].pattern[j].actions[k])
-                    {
-                        case BulletPatternProperty.PatternAction.Circular: bake_bulletPattern.act.Add(Actions._shootCircular); break;
-                        case BulletPatternProperty.PatternAction.ShootAim: bake_bulletPattern.act.Add(Actions._shootDirection); break;
-                        case BulletPatternProperty.PatternAction.ShootFan: bake_bulletPattern.act.Add(Actions._shootFan); break;
-                        case BulletPatternProperty.PatternAction.ShootLayered: bake_bulletPattern.act.Add(Actions._shootLayered); break;
-                    }
-                    bake_bulletPattern.parameter.Add(bake_bulletParameter);
-                }
-                bake_bulletGenerator.pattern.Add(bake_bulletPattern);
-            }
-            bake_bulletGenerator.fireTime=property.bulletGenerator[i].fireTime;
             bakePos.x=Mathf.Cos(property.bulletGenerator[i].direction*Mathf.Deg2Rad)*property.bulletGenerator[i].radius;
             bakePos.y=Mathf.Sin(property.bulletGenerator[i].direction*Mathf.Deg2Rad)*property.bulletGenerator[i].radius;
-            bake_bulletGenerator.location=bakePos;
-            bake_bulletGenerator.firstLoc=bakePos;
-            bake_bulletGenerator.parent=enemy.transform;
-            em.bg_list.Add(bake_bulletGenerator);
-            em.bg_list[i].isShoot=true;
+            bakeGenerator=Instantiate(new GameObject(),em.transform,false);
+            bakeGenerator.transform.localRotation = Quaternion.identity;
+            bakeGenerator.transform.localPosition = bakePos;
+            em.bg_list.Add(bakeGenerator.AddComponent(typeof(BulletGenerator)) as BulletGenerator);
+            
+            em.bg_list[i].firstLoc=bakePos;
+            em.bg_list[i].parameter = property.bulletGenerator[i].parameter;
+            em.bg_list[i].isShoot = true;
+            em.bg_list[i].bulletColor = property.bulletGenerator[i].bulletColor;
+            switch(property.bulletGenerator[i].actions)
+            {
+                case GameController.BulletGeneratorProperty.PatternAction.Circular:
+                    em.bg_list[i].act = Actions._shootCircular; break;
+                case GameController.BulletGeneratorProperty.PatternAction.ShootAim:
+                    em.bg_list[i].act = Actions._shootDirection; break;
+                case GameController.BulletGeneratorProperty.PatternAction.ShootFan:
+                    em.bg_list[i].act = Actions._shootFan; break;
+                case GameController.BulletGeneratorProperty.PatternAction.ShootLayered:
+                    em.bg_list[i].act = Actions._shootLayered; break;
+            }
+            em.generatorTimer[property.bulletGenerator[i].timerIndex].ExecuteEvent += em.bg_list[i].GeneratorShoot;
+        }
+        
+        //Code to set the last timer in enemy object to execute timer reset to all timers in one enemy
+        for(int i=0; i<em.generatorTimer.Count;i++)
+        {
+            em.generatorTimer[em.generatorTimer.Count-1].ExecuteEvent += em.generatorTimer[i].resetTimer;
         }
     }
 
@@ -171,15 +148,15 @@ public class GameController : MonoBehaviour
                 bulletDictionary[tag][i].transform.localRotation = Quaternion.Euler(0,0,rotate);
                 BulletMovement spd = bulletDictionary[tag][i].GetComponent<BulletMovement>();
                 spd.initialZ = rotate;
-                //SpriteRenderer sr = bulletDictionary[tag][i].GetComponent<SpriteRenderer>();
-                //sr.color = col;
+                SpriteRenderer sr = bulletDictionary[tag][i].GetComponent<SpriteRenderer>();
+                sr.color = col;
                 spd.speed = speed;
                 return bulletDictionary[tag][i];
             }
         }
         GameObject obj = Instantiate(bulletDictionary[tag][0]);
-        //SpriteRenderer newsr = obj.GetComponent<SpriteRenderer>();
-        //newsr.color = col;
+        SpriteRenderer newsr = obj.GetComponent<SpriteRenderer>();
+        newsr.color = col;
         obj.transform.SetParent(playfieldAnchorTransform);
         obj.transform.localPosition=position;
         obj.transform.localRotation=Quaternion.identity;

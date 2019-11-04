@@ -133,11 +133,12 @@ public class PlayerControl : MonoBehaviour
         }
         if(other.tag=="Item")
         {
-            if(powerStatus!=1)
+            if(powerStatus!=8)
             {
                 powerCounter++;
+                Debug.Log(powerCounter);
             }
-            if(powerCounter>=5)
+            if(powerCounter>=100)
             {
                 PowerUp();
             }

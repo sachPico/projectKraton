@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
@@ -53,13 +52,11 @@ public class GameController : MonoBehaviour
 
     public Dictionary<string, List<GameObject>> bulletDictionary;
     public List<Pool> bulletPools;
-    public List<Image> scoreUIList;
-    public List<Sprite> scoreImageList;
     public SpawnObject[] spawnObjects;
     
     Vector3 bakePos;//=new Vector3();
-    Vector2 bakeSpawnPos, bakeScoreUIPos;
-    GameObject bakeGenerator, bakeNewScoreUI;
+    Vector2 bakeSpawnPos;
+    GameObject bakeGenerator;
     BulletGenerator bakeSubGenerator;
     public Vector3[] border_cam, border;
     public static double fieldBorder;
@@ -82,44 +79,7 @@ public class GameController : MonoBehaviour
     float anchorDist;//, j=0;
     private Timer generateTimer;
 
-    void SetScoreImages()
-    {
-        for(int i = 0; i<scoreImages.transform.childCount;i++)
-        {
-            scoreUIList.Add(scoreImages.transform.GetChild(i).GetComponent<Image>());
-        }
-    }
-    public void UpdateScore()
-    {
-        int bakeScore1;
-        int bakeScore2;
-        bakeScore1 = (int)score;
-        digitcount = ((int) Mathf.Log10(score))+1;
-        if(digitcount!=scoreImages.transform.childCount)
-        {
-            bakeNewScoreUI = Instantiate(scoreImages.transform.GetChild(0).gameObject,scoreImages.transform);
-            bakeNewScoreUI.transform.SetSiblingIndex(digitcount-1);
-            bakeScoreUIPos = bakeNewScoreUI.GetComponent<RectTransform>().anchorMax;
-            bakeScoreUIPos.x -= anchorDist*(digitcount-1);
-            bakeNewScoreUI.GetComponent<RectTransform>().anchorMax=bakeScoreUIPos;
-            bakeScoreUIPos = bakeNewScoreUI.GetComponent<RectTransform>().anchorMin;
-            bakeScoreUIPos.x -= anchorDist*(digitcount-1);
-            bakeNewScoreUI.GetComponent<RectTransform>().anchorMin=bakeScoreUIPos;
-            //Debug.Log(digitcount);
-            scoreUIList.Add(bakeNewScoreUI.GetComponent<Image>());
-        }
-        for(int i=digitcount-1; i>=0; i--)
-        {
-            bakeScore2 = (int)(bakeScore1/(Mathf.Pow(10,i)));
-            bakeScore1 %= (int)Mathf.Pow(10,i);
-            scoreUIList[i].sprite = scoreImageList[bakeScore2];
-        }
-    }
-    public void AddScore(int sc)
-    {
-        score += (uint)sc;
-        UpdateScore();
-    }
+    
     public void generateEnemy(SpawnObjectProperty property)
     {
         bakeSpawnPos.x = 0.3f + (0.4f * property.camPosition.x);
@@ -251,13 +211,6 @@ public class GameController : MonoBehaviour
     {
         //PRINT TITIK BATAS DI DIMENSI WORLD
         //Debug.Log(mainCam.ViewportToWorldPoint(new Vector3(.3f,0f,20f)).x+ " "+mainCam.ViewportToWorldPoint(new Vector3(.3f-.25f,0f,20f)).x);
-        
-        //SETTING UI SCORE
-        SetScoreImages();
-
-        //CEK JARAK ANCHOR UI SKOR
-        //Debug.Log(scoreUIList[0].GetComponent<RectTransform>().anchorMax.x-scoreUIList[0].GetComponent<RectTransform>().anchorMin.x);
-        anchorDist = scoreUIList[0].GetComponent<RectTransform>().anchorMax.x-scoreUIList[0].GetComponent<RectTransform>().anchorMin.x;
 
         //MULAI OBJECT POOL
         bulletDictionary=new Dictionary<string, List<GameObject>>();

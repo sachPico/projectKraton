@@ -15,6 +15,14 @@ public class BulletGenerator:MonoBehaviour
     //[ConditionalHide("isGatling", true)]
     public Timer gatlingTimer;
 
+    void Update()
+    {
+        if(gatlingTimer!=null&&!gatlingTimer.isOver)
+        {
+            gatlingTimer.timerCount();
+        }
+    }
+
     public void GeneratorShoot()
     {
         act.Execute(transform.localPosition+transform.parent.localPosition, parameter, bulletColor);

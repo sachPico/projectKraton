@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
@@ -32,10 +33,13 @@ public class GameController : MonoBehaviour
         public List<Timer> executeTimer;
         public float direction, speed, spawnPowerUpNumber, health;
     }
-
     [System.Serializable]
     public class BulletGeneratorProperty{
         public float direction, radius;
+        public bool isGatling;
+        [ConditionalHide("isGatling", true)]
+        public Timer gatlingFireRate;
+
         public int timerIndex;
         public BulletParameter parameter;
         public enum PatternAction {ShootAim, ShootFan, ShootLayered, Circular};
@@ -49,31 +53,78 @@ public class GameController : MonoBehaviour
 
     public Dictionary<string, List<GameObject>> bulletDictionary;
     public List<Pool> bulletPools;
+    public List<Image> scoreUIList;
+    public List<Sprite> scoreImageList;
     public SpawnObject[] spawnObjects;
     
-    Vector3 bakePos=new Vector3();
-    GameObject bakeGenerator;
+    Vector3 bakePos;//=new Vector3();
+    Vector2 bakeSpawnPos, bakeScoreUIPos;
+    GameObject bakeGenerator, bakeNewScoreUI;
+    BulletGenerator bakeSubGenerator;
     public Vector3[] border_cam, border;
     public static double fieldBorder;
 
-    public GameObject enemies, player;
+    public GameObject enemies, player, bulletGeneratorObject, scoreImages;
     public Camera mainCam;
     public Transform playfieldAnchorTransform;
     public Transform[] border_test;
     public static GameController sharedOverseer;
 
     public int playerLifes=2;
+    public uint score;
 
     //mending ga usah dijadiin satu class sendiri
     #region EnemyGenerationPattern
 
+    public CameraControl camControl;
     private Transform camTransform;
-    private int spawnCounter=0;//, j=0;
+    private int spawnCounter=0, digitcount =0;
+    float anchorDist;//, j=0;
     private Timer generateTimer;
 
+    void SetScoreImages()
+    {
+        for(int i = 0; i<scoreImages.transform.childCount;i++)
+        {
+            scoreUIList.Add(scoreImages.transform.GetChild(i).GetComponent<Image>());
+        }
+    }
+    public void UpdateScore()
+    {
+        int bakeScore1;
+        int bakeScore2;
+        bakeScore1 = (int)score;
+        digitcount = ((int) Mathf.Log10(score))+1;
+        if(digitcount!=scoreImages.transform.childCount)
+        {
+            bakeNewScoreUI = Instantiate(scoreImages.transform.GetChild(0).gameObject,scoreImages.transform);
+            bakeNewScoreUI.transform.SetSiblingIndex(digitcount-1);
+            bakeScoreUIPos = bakeNewScoreUI.GetComponent<RectTransform>().anchorMax;
+            bakeScoreUIPos.x -= anchorDist*(digitcount-1);
+            bakeNewScoreUI.GetComponent<RectTransform>().anchorMax=bakeScoreUIPos;
+            bakeScoreUIPos = bakeNewScoreUI.GetComponent<RectTransform>().anchorMin;
+            bakeScoreUIPos.x -= anchorDist*(digitcount-1);
+            bakeNewScoreUI.GetComponent<RectTransform>().anchorMin=bakeScoreUIPos;
+            //Debug.Log(digitcount);
+            scoreUIList.Add(bakeNewScoreUI.GetComponent<Image>());
+        }
+        for(int i=digitcount-1; i>=0; i--)
+        {
+            bakeScore2 = (int)(bakeScore1/(Mathf.Pow(10,i)));
+            bakeScore1 %= (int)Mathf.Pow(10,i);
+            scoreUIList[i].sprite = scoreImageList[bakeScore2];
+        }
+    }
+    public void AddScore(int sc)
+    {
+        score += (uint)sc;
+        UpdateScore();
+    }
     public void generateEnemy(SpawnObjectProperty property)
     {
-        Vector3 toAnchor = mainCam.ViewportToWorldPoint(new Vector3(property.camPosition.x,property.camPosition.y,Mathf.Abs(mainCam.transform.localPosition.z)));
+        bakeSpawnPos.x = 0.3f + (0.4f * property.camPosition.x);
+        bakeSpawnPos.y = property.camPosition.y;
+        Vector3 toAnchor = mainCam.ViewportToWorldPoint(new Vector3(bakeSpawnPos.x,bakeSpawnPos.y,Mathf.Abs(mainCam.transform.localPosition.z)));
         GameObject enemy = Instantiate(property.obj, toAnchor, Quaternion.identity,playfieldAnchorTransform);
         enemy.transform.localRotation = Quaternion.Euler(0,0,property.direction);
         EnemyMove em = enemy.GetComponent<EnemyMove>();
@@ -85,7 +136,7 @@ public class GameController : MonoBehaviour
         {
             bakePos.x=Mathf.Cos(property.bulletGenerator[i].direction*Mathf.Deg2Rad)*property.bulletGenerator[i].radius;
             bakePos.y=Mathf.Sin(property.bulletGenerator[i].direction*Mathf.Deg2Rad)*property.bulletGenerator[i].radius;
-            bakeGenerator=Instantiate(new GameObject(),em.transform,false);
+            bakeGenerator=Instantiate(bulletGeneratorObject,em.transform,false);
             bakeGenerator.transform.localRotation = Quaternion.identity;
             bakeGenerator.transform.localPosition = bakePos;
             em.bg_list.Add(bakeGenerator.AddComponent(typeof(BulletGenerator)) as BulletGenerator);
@@ -105,7 +156,21 @@ public class GameController : MonoBehaviour
                 case GameController.BulletGeneratorProperty.PatternAction.ShootLayered:
                     em.bg_list[i].act = Actions._shootLayered; break;
             }
-            em.generatorTimer[property.bulletGenerator[i].timerIndex].ExecuteEvent += em.bg_list[i].GeneratorShoot;
+            if(property.bulletGenerator[i].isGatling)
+            {
+                bakeSubGenerator = Instantiate(bulletGeneratorObject, em.bg_list[i].transform, false).AddComponent(typeof(BulletGenerator)) as BulletGenerator;
+                bakeSubGenerator.gatlingTimer = property.bulletGenerator[i].gatlingFireRate;
+                bakeSubGenerator.gameObject.name="SubGenerator "+i;
+                //bakeSubGenerator.gatlingTimer.isResettable = property.bulletGenerator[i].gatlingFireRate.isResettable;
+                //bakeSubGenerator.gatlingTimer.iterations = property.bulletGenerator[i].gatlingFireRate.maxIterations;
+                bakeSubGenerator.gatlingTimer.ExecuteEvent += em.bg_list[i].GeneratorShoot;
+                em.generatorTimer[property.bulletGenerator[i].timerIndex].ExecuteEvent += bakeSubGenerator.gatlingTimer.resetTimer;
+            }
+            else
+            {
+                em.generatorTimer[property.bulletGenerator[i].timerIndex].ExecuteEvent += em.bg_list[i].GeneratorShoot;
+            }
+            //Debug.Break();
         }
         
         //Code to set the last timer in enemy object to execute timer reset to all timers in one enemy
@@ -113,8 +178,8 @@ public class GameController : MonoBehaviour
         {
             em.generatorTimer[em.generatorTimer.Count-1].ExecuteEvent += em.generatorTimer[i].resetTimer;
         }
+        //Debug.Break();
     }
-
     public void spawnPowerUp(Vector3 spawnPosition)
     {
         for(int b=0;b<bulletDictionary["PowerUp"].Count;b++)
@@ -135,7 +200,6 @@ public class GameController : MonoBehaviour
         bulletDictionary["PowerUp"].Add(obj);
         return;
     }
-
     public GameObject shoot(string tag, Vector3 position, float rotate, float speed, Color col)
     {
         for(int i=0;i<bulletDictionary[tag].Count;i++)
@@ -150,6 +214,7 @@ public class GameController : MonoBehaviour
                 spd.initialZ = rotate;
                 SpriteRenderer sr = bulletDictionary[tag][i].GetComponent<SpriteRenderer>();
                 sr.color = col;
+                sr.sortingOrder = i;
                 spd.speed = speed;
                 return bulletDictionary[tag][i];
             }
@@ -157,6 +222,7 @@ public class GameController : MonoBehaviour
         GameObject obj = Instantiate(bulletDictionary[tag][0]);
         SpriteRenderer newsr = obj.GetComponent<SpriteRenderer>();
         newsr.color = col;
+        newsr.sortingOrder = bulletDictionary[tag].Count+1;
         obj.transform.SetParent(playfieldAnchorTransform);
         obj.transform.localPosition=position;
         obj.transform.localRotation=Quaternion.identity;
@@ -170,13 +236,11 @@ public class GameController : MonoBehaviour
     }
 
     #endregion
-
     public void PlayerDeath()
     {
         playerLifes--;
-        
+        camControl.resetOrigin = mainCam.transform.localPosition.x;
     }
-
     void Awake()
     {
         sharedOverseer = this; 
@@ -185,7 +249,17 @@ public class GameController : MonoBehaviour
 
     void Start()
     {
+        //PRINT TITIK BATAS DI DIMENSI WORLD
+        //Debug.Log(mainCam.ViewportToWorldPoint(new Vector3(.3f,0f,20f)).x+ " "+mainCam.ViewportToWorldPoint(new Vector3(.3f-.25f,0f,20f)).x);
         
+        //SETTING UI SCORE
+        SetScoreImages();
+
+        //CEK JARAK ANCHOR UI SKOR
+        //Debug.Log(scoreUIList[0].GetComponent<RectTransform>().anchorMax.x-scoreUIList[0].GetComponent<RectTransform>().anchorMin.x);
+        anchorDist = scoreUIList[0].GetComponent<RectTransform>().anchorMax.x-scoreUIList[0].GetComponent<RectTransform>().anchorMin.x;
+
+        //MULAI OBJECT POOL
         bulletDictionary=new Dictionary<string, List<GameObject>>();
         foreach (Pool pool in bulletPools)
         {
@@ -199,12 +273,16 @@ public class GameController : MonoBehaviour
             }
             bulletDictionary.Add(pool.tag, objPool);
         }
-        //Horizontal side border
-        border_cam[0] = new Vector3(0.1f, 0.5f, transform.localPosition.z);
-        border_cam[1] = new Vector3(.9f, 0.5f, transform.localPosition.z);
-        //Vertical side border
-        border_cam[2] = new Vector3(0.5f, 0.1f, transform.localPosition.z);
-        border_cam[3] = new Vector3(0.5f, 0.9f, transform.localPosition.z);
+        //AKHIR OBJECT POOL
+
+        //ATUR POSISI BATAS HORIZONTAL
+        border_cam[0] = new Vector3(0.3f, 0.5f, transform.localPosition.z); //KIRI TENGAH
+        border_cam[1] = new Vector3(.7f, 0.5f, transform.localPosition.z);  //KANAN TENGAH
+
+        //ATUR POSISI BATAS VERTIKAL
+        border_cam[2] = new Vector3(0.5f, 0.1f, transform.localPosition.z); //TENGAH BAWAH
+        border_cam[3] = new Vector3(0.5f, 0.9f, transform.localPosition.z); //TENGAH ATAS
+
         border[0]=new Vector3();
         border[1]=new Vector3();
         border[2]=new Vector3();
@@ -214,6 +292,7 @@ public class GameController : MonoBehaviour
             border[i]=new Vector3();
         }
         camTransform=mainCam.transform;
+        camControl = mainCam.gameObject.GetComponent<CameraControl>();
     }
 
     void Update()
@@ -234,4 +313,5 @@ public class GameController : MonoBehaviour
         }
         fieldBorder=(double)(-19.4992f+((camTransform.localPosition.z-20)/10)*4.875f)-1d;
     }
+
 }

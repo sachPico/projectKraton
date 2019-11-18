@@ -6,7 +6,7 @@ using UnityEngine;
 public class Timer
 {
     private float timer_i;
-    int iterations;
+    public int iterations=0;
     public int maxIterations;
     public float timer;
     public bool isOver, isResettable;
@@ -28,6 +28,7 @@ public class Timer
 
     public void resetTimer()
     {
+        iterations=0;
         isOver=false;
     }
 
@@ -40,18 +41,29 @@ public class Timer
             { 
                 timer_i=0;
                 
-                if(ExecuteEvent!=null)
+                
+                if(isResettable)
                 {
-                    ExecuteEvent();
+                    if(iterations<maxIterations)
+                    {
+                        iterations++;
+                        ExecuteEvent();
+                    }
+                    else
+                    {
+                            isOver=true;
+                    }
                 }
-                if(isResettable&&iterations<maxIterations)
-                {
-                    iterations++;
-                }
+                
                 else
                 {
                     isOver=true;
+                    if(ExecuteEvent!=null)
+                    {
+                        ExecuteEvent();
+                    }
                 }
+                
                 return true;
             }
             else

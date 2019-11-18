@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System.Threading;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,11 +9,17 @@ public class PlayerControl : MonoBehaviour
     int powerStatus;
     public int powerCounter;
     public float dist;
+    bool enableRenderer = true, enableCollider = true;
+    Timer onRevivalTimer;
+    SphereCollider pCollider;
+    MeshRenderer pMeshRenderer;
     private Vector3 limit, reset;
     public Vector3 translate;
-    bool isShoot;
+    bool isShoot, isThreadAlreadyInitiated=false;
 
     public List<PlayerBulletSpawn> pBulletSpawn = new List<PlayerBulletSpawn>();
+
+    Thread onRevivalThread;
 
     public delegate void ShootDelegate();
     public static event ShootDelegate shootEvent;
@@ -61,9 +68,64 @@ public class PlayerControl : MonoBehaviour
         pBulletSpawn.Add(new PlayerBulletSpawn("AlifNormal", 330f, .5f, 330f, 100f));
         pBulletSpawn.Add(new PlayerBulletSpawn("AlifNormal", 210f, .5f, 210f, 100f));
 
+        pCollider = this.gameObject.GetComponent<SphereCollider>();
+        pMeshRenderer = transform.GetChild(0).GetComponent<MeshRenderer>();
+
+        onRevivalTimer = new Timer(3f, false);
+        onRevivalThread = new Thread(OnRevival);
+
         for(int i=0; i<2; i++)
         {
             shootEvent += pBulletSpawn[i].OnShoot;
+        }
+    }
+
+    void Print()
+    {
+        onRevivalThread.Interrupt();
+        onRevivalThread=null;
+        if(onRevivalThread==null)
+        {
+            Debug.Log("HOYAA ");
+            isThreadAlreadyInitiated=true;
+        }
+        
+    }
+
+    void Print2()
+    {
+        Debug.Log("HAE");
+    }
+
+    bool TimerEncapsulator(Timer inputTimer)
+    {
+        return inputTimer.timerCount();
+    }
+
+    void OnRevival()
+    {
+        for(int i=0; i<1000; i++)
+        {
+            Thread.Sleep(4);
+            enableRenderer=!enableRenderer;
+        }
+        
+        enableRenderer=true;
+        enableCollider=true;
+        Debug.Log(enableCollider);
+        Print();
+    }
+
+    void OnEnable()
+    {
+        if(onRevivalThread!=null)
+        {
+            onRevivalThread.Start();
+        }
+        else if(onRevivalThread==null && isThreadAlreadyInitiated==true)
+        {
+            onRevivalThread=new Thread(OnRevival);
+            onRevivalThread.Start();
         }
     }
 
@@ -71,7 +133,7 @@ public class PlayerControl : MonoBehaviour
     {
         
         powerStatus++;
-        Debug.Log(powerStatus);
+        //Debug.Log(powerStatus);
         shootEvent+=pBulletSpawn[(powerStatus*2)+1].OnShoot;
         shootEvent+=pBulletSpawn[powerStatus*2].OnShoot;
         powerCounter=0;
@@ -87,6 +149,9 @@ public class PlayerControl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        pMeshRenderer.enabled = enableRenderer;
+        pCollider.enabled = enableCollider;
+        
         if(Input.GetButton("Fire1"))
         {
             if(isShoot==false)
@@ -95,16 +160,17 @@ public class PlayerControl : MonoBehaviour
             }
             else
             {
-                //GameController.sharedOverseer.shoot("AlifNormal",transform.localPosition+(Vector3.right*dist), 90f,100f, Color.white);
-                //GameController.sharedOverseer.shoot("AlifNormal",transform.localPosition+(Vector3.right*dist*-1), 90f,100f, Color.white);
                 shootEvent();
                 isShoot=false;
             }
         }
-        translate.x=Input.GetAxisRaw("Horizontal")*moveSpeed*Time.deltaTime;
-        translate.y=Input.GetAxisRaw("Vertical")*moveSpeed*Time.deltaTime;
+        if(Input.GetKeyDown(KeyCode.A))
+        {
+            PowerUp();
+        }
+        translate.x=(Input.GetAxisRaw("Horizontal")*moveSpeed*Time.deltaTime)*(Input.GetAxisRaw("Focus")==1?.5f:1f);
+        translate.y=(Input.GetAxisRaw("Vertical")*moveSpeed*Time.deltaTime)*(Input.GetAxisRaw("Focus")==1?.5f:1f);
         transform.localPosition+= translate;
-        
     }
 
     void LateUpdate()
@@ -126,9 +192,10 @@ public class PlayerControl : MonoBehaviour
             {
                 PowerDown();
             }
-            if(GameController.sharedOverseer.playerLifes!=0)
+            if(GameController.sharedOverseer.playerLifes>=0)
             {
-                transform.localPosition=reset;
+                enableCollider=false;
+                this.gameObject.SetActive(false);
             }
         }
         if(other.tag=="Item")
@@ -136,7 +203,7 @@ public class PlayerControl : MonoBehaviour
             if(powerStatus!=8)
             {
                 powerCounter++;
-                Debug.Log(powerCounter);
+                //Debug.Log(powerCounter);
             }
             if(powerCounter>=100)
             {

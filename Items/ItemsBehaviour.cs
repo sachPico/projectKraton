@@ -24,10 +24,17 @@ public class ItemsBehaviour : MonoBehaviour
         }
         else
         {
-            translate.x = transform.localPosition.x-player.transform.localPosition.x;
-            translate.y = transform.localPosition.y-player.transform.localPosition.y;
-            translate.z = 0;
-            translate = Vector3.Normalize(translate)*-1/2;
+            if(player.activeInHierarchy)
+            {
+                translate.x = transform.localPosition.x-player.transform.localPosition.x;
+                translate.y = transform.localPosition.y-player.transform.localPosition.y;
+                translate.z = 0;
+                translate = Vector3.Normalize(translate)*-1/2;
+            }
+            else
+            {
+                isGrazed=false;
+            }
             //Debug.Break();
         }
         transform.localPosition += translate;

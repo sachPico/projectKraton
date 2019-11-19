@@ -7,10 +7,6 @@ public class BulletMovement : MonoBehaviour
     public float speed, modifierTargetRotation, interpolationSpeed, initialZ, angleSpeed;
     public BulletMoveModifier bmm;
 
-    void Start()
-    {
-    }
-
     void Update()
     {
         transform.position+=transform.right*speed*Time.fixedDeltaTime;
@@ -24,4 +20,14 @@ public class BulletMovement : MonoBehaviour
             gameObject.SetActive(false);
         }
     }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if(other.tag=="Enemy"&&this.tag!="EnemyBullet")
+        {
+            GameController.sharedOverseer.gameScore.AddValue(10);
+            this.gameObject.SetActive(false);
+        }
+    }
+
 }

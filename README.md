@@ -17,3 +17,4 @@ UPDATES:
 
 - Fix how to call camera's position reset method
 - Rearrange GameController.cs and PlayerController.cs codes, especially threading part for GameController.cs
+- Changing responsibility to add score on hit from enemy to each bullets collided

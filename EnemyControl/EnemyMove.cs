@@ -52,9 +52,8 @@ public class EnemyMove : MonoBehaviour
     {
         if(other.tag=="PlayerBullet")
         {
-            other.gameObject.SetActive(false);
+            //other.gameObject.SetActive(false);
             health-=1;
-            GameController.sharedOverseer.AddScore(10);
             if(health<=0)
             {
                 for(int i=0; i<spawnPowerUp; i++)
@@ -63,7 +62,7 @@ public class EnemyMove : MonoBehaviour
                     spawnLocalPosition.y=Random.Range(-3f,3f);
                     GameController.sharedOverseer.spawnPowerUp(transform.localPosition+spawnLocalPosition);
                 }
-                GameController.sharedOverseer.AddScore(100);
+                GameController.sharedOverseer.gameScore.AddValue(100);
                 gameObject.SetActive(false);
             }
         }

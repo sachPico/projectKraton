@@ -3,12 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ScoreUIHandler:MonoBehaviour
+public class ScoreUIHandler : MonoBehaviour
 {
-    
+    //THIS IS FOR A SINGLE UI HANDLER
     public List<Image> scoreUIList;
     public List<Sprite> scoreImageList;
     public GameObject scoreImages;
+
+    //THIS IS FOR A MULTI UI HANDLER
+    public Dictionary<string, List<Image>> scoreUIDictionary;
+    public Dictionary<string, List<Image>> scoreUIImageDictionary;
+    public Dictionary<string, GameObject> scoreUIParents;
+
     public static uint score;
     public float anchorDist;
     
@@ -16,6 +22,8 @@ public class ScoreUIHandler:MonoBehaviour
 
     Vector2 bakeScoreUIPos;
     GameObject bakeNewScoreUI;
+    
+    public static ScoreUIHandler scoreHandler;
 
     void SetScoreImages()
     {
@@ -24,12 +32,12 @@ public class ScoreUIHandler:MonoBehaviour
             scoreUIList.Add(scoreImages.transform.GetChild(i).GetComponent<Image>());
         }
     }
-    void UpdateScore()
+    public void UpdateScore(Value _value)
     {
         int bakeScore1;
         int bakeScore2;
-        bakeScore1 = (int)score;
-        digitcount = ((int) Mathf.Log10(score))+1;
+        bakeScore1 = (int)_value.value;
+        digitcount = ((int) Mathf.Log10(_value.value))+1;
         if(digitcount!=scoreImages.transform.childCount)
         {
             bakeNewScoreUI = Instantiate(scoreImages.transform.GetChild(0).gameObject,scoreImages.transform);
@@ -40,7 +48,6 @@ public class ScoreUIHandler:MonoBehaviour
             bakeScoreUIPos = bakeNewScoreUI.GetComponent<RectTransform>().anchorMin;
             bakeScoreUIPos.x -= anchorDist*(digitcount-1);
             bakeNewScoreUI.GetComponent<RectTransform>().anchorMin=bakeScoreUIPos;
-            //Debug.Log(digitcount);
             scoreUIList.Add(bakeNewScoreUI.GetComponent<Image>());
         }
         for(int i=digitcount-1; i>=0; i--)
@@ -50,12 +57,6 @@ public class ScoreUIHandler:MonoBehaviour
             scoreUIList[i].sprite = scoreImageList[bakeScore2];
         }
     }
-    
-    public void AddScore(int sc)
-    {
-        score += (uint)sc;
-        UpdateScore();
-    }
 
     void Start()
     {
@@ -64,5 +65,7 @@ public class ScoreUIHandler:MonoBehaviour
 
         //CEK JARAK ANCHOR UI SKOR
         anchorDist = scoreUIList[0].GetComponent<RectTransform>().anchorMax.x-scoreUIList[0].GetComponent<RectTransform>().anchorMin.x;
+
+        scoreHandler = this;
     }
 }

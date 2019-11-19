@@ -50,6 +50,8 @@ public class GameController : MonoBehaviour
     public enum Act{ShootAim, Circular, ShootFan};
     public Difficulty difficulty;
 
+    public Score gameScore = new Score("PlayScore"),powerStatus = new Score(8,"PowerStatus"), powerCounter = new Score(99,"PowerCounter");
+
     public Dictionary<string, List<GameObject>> bulletDictionary;
     public List<Pool> bulletPools;
     public SpawnObject[] spawnObjects;
@@ -68,7 +70,7 @@ public class GameController : MonoBehaviour
     public static GameController sharedOverseer;
 
     public int playerLifes=2;
-    public uint score;
+    //public uint score;
 
     //mending ga usah dijadiin satu class sendiri
     #region EnemyGenerationPattern

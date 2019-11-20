@@ -50,7 +50,7 @@ public class GameController : MonoBehaviour
     public enum Act{ShootAim, Circular, ShootFan};
     public Difficulty difficulty;
 
-    public Score gameScore = new Score("PlayScore"),powerStatus = new Score(8,"PowerStatus"), powerCounter = new Score(99,"PowerCounter");
+    public Score gameScore = new Score(0,0),powerStatus = new Score(8,1), powerCounter = new Score(99,2);
 
     public Dictionary<string, List<GameObject>> bulletDictionary;
     public List<Pool> bulletPools;
@@ -77,7 +77,7 @@ public class GameController : MonoBehaviour
 
     public CameraControl camControl;
     private Transform camTransform;
-    private int spawnCounter=0, digitcount =0;
+    private int spawnCounter=0;
     float anchorDist;//, j=0;
     private Timer generateTimer;
 
@@ -212,8 +212,6 @@ public class GameController : MonoBehaviour
     void Start()
     {
         //PRINT TITIK BATAS DI DIMENSI WORLD
-        //Debug.Log(mainCam.ViewportToWorldPoint(new Vector3(.3f,0f,20f)).x+ " "+mainCam.ViewportToWorldPoint(new Vector3(.3f-.25f,0f,20f)).x);
-
         //MULAI OBJECT POOL
         bulletDictionary=new Dictionary<string, List<GameObject>>();
         foreach (Pool pool in bulletPools)
@@ -270,3 +268,4 @@ public class GameController : MonoBehaviour
     }
 
 }
+//Total baris program yang kau buat: 1442

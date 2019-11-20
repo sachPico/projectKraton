@@ -62,7 +62,7 @@ public class EnemyMove : MonoBehaviour
                     spawnLocalPosition.y=Random.Range(-3f,3f);
                     GameController.sharedOverseer.spawnPowerUp(transform.localPosition+spawnLocalPosition);
                 }
-                GameController.sharedOverseer.gameScore.AddValue(100);
+                GameController.sharedOverseer.gameScore.AddValue(10000);
                 gameObject.SetActive(false);
             }
         }

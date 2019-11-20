@@ -203,6 +203,7 @@ public class PlayerControl : MonoBehaviour
             if(powerStatus!=8)
             {
                 powerCounter++;
+                GameController.sharedOverseer.powerCounter.AddValue(1);
                 //Debug.Log(powerCounter);
             }
             if(powerCounter>=100)

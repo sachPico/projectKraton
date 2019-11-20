@@ -6,20 +6,19 @@ using UnityEngine;
 [System.Serializable]
 public class Score
 {
-    public string tag;
-    public Value _value=new Value();
+    public Value _value;
     public int max;
 
-    public Score(string scoreTag)
+    public Score(int scoreIndex)
     {
         max = 0;
-        tag = scoreTag;
+        _value = new Value(scoreIndex);
     }
 
-    public Score(int maxValue, string scoreTag)
+    public Score(int maxValue, int scoreIndex)
     {
         max = maxValue;
-        tag = scoreTag;
+        _value = new Value(scoreIndex);
     }
 
     public void AddValue(uint addValue)
@@ -27,7 +26,7 @@ public class Score
         _value.value += addValue;
         if(max!=0)
         {
-            _value.value = (uint)Mathf.Clamp(_value.value, 0, max==0? int.MaxValue : max);
+            _value.value = (uint)Mathf.Clamp(_value.value, -1, max);
         }
         ScoreUIHandler.scoreHandler.UpdateScore(_value);
     }
